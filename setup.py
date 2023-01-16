@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Learn more: https://github.com/kennethreitz/setup.py
-
 from setuptools import setup, find_packages
 
 
@@ -12,13 +10,13 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='sample',
+    name='qfm',
     version='0.1.0',
-    description='Sample package for Python-Guide.org',
+    description='Examples for paper "Quantum Factory Method: A Design for Implementing Different Quantum Libraries"',
     long_description=readme,
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
-    url='https://github.com/kennethreitz/samplemod',
+    author='Samuel Magaz-Romero',
+    author_email='s.magazr@udc.es',
+    url='https://github.com/samu-magaz/quantum-factory-method',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )

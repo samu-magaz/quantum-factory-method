@@ -1,2 +1,5 @@
-nose
+pytest
 sphinx
+qiskit
+cirq
+ply
