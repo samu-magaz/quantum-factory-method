@@ -1,12 +1,10 @@
 import abc
-import re
-from typing import List
 import qiskit
 from qiskit_aer import Aer
 import cirq
 from cirq.contrib.qasm_import import circuit_from_qasm
 
-class Circuit:
+class Circuit(abc.ABC):
     pass
 
 
@@ -20,6 +18,11 @@ class CirqCircuit(Circuit):
         self.built_circuit = built_circuit
 
 
+class Result:
+    def __init__(self, values: list[float]) -> None:
+        self.values = values
+
+
 class Platform(abc.ABC):
     @staticmethod
     @abc.abstractmethod
@@ -28,7 +31,7 @@ class Platform(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def execute(circuit: Circuit) -> List[float]:
+    def execute(circuit: Circuit) -> list[float]:
         pass
 
 
@@ -40,7 +43,7 @@ class QiskitPlatform(Platform):
         return QiskitCircuit(qiskit.QuantumCircuit.from_qasm_str(openqasm_str))
 
     @staticmethod
-    def execute(quantum_circuit: QiskitCircuit) -> List[float]:
+    def execute(quantum_circuit: QiskitCircuit) -> list[float]:
         circ = quantum_circuit.built_circuit
 
         simulator = Aer.get_backend("aer_simulator")
@@ -53,7 +56,7 @@ class QiskitPlatform(Platform):
         values = list(range(len(counts)))
         for k,v in counts.items():
             values[k] = v / QiskitPlatform.shots
-        return values
+        return Result(values)
 
 
 class CirqPlatform(Platform):
@@ -64,7 +67,7 @@ class CirqPlatform(Platform):
         return CirqCircuit(circuit_from_qasm(openqasm_str))
 
     @staticmethod
-    def execute(quantum_circuit: CirqCircuit) -> List[float]:
+    def execute(quantum_circuit: CirqCircuit) -> list[float]:
         circ = quantum_circuit.built_circuit
 
         result = cirq.Simulator().run(circ, repetitions=CirqPlatform.shots)
@@ -77,4 +80,4 @@ class CirqPlatform(Platform):
             temp += v
         values[0] = temp / CirqPlatform.shots
         values[1] = (CirqPlatform.shots - temp) / CirqPlatform.shots
-        return values
+        return Result(values)

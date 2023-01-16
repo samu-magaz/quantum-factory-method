@@ -24,4 +24,6 @@ class OpenQASMTestSuite(unittest.TestCase):
 
         platforms = [QiskitPlatform, CirqPlatform]
 
-        print(list(map(lambda platform: platform.execute(platform.build(bell_state)), platforms)))
+        results = list(map(lambda platform: platform.execute(platform.build(bell_state)), platforms))
+
+        [print(result.values) for result in results]
