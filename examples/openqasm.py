@@ -1,3 +1,4 @@
+import abc
 import re
 from typing import List
 import qiskit
@@ -10,22 +11,24 @@ class Circuit:
 
 
 class QiskitCircuit(Circuit):
-    def __init__(self, built_circuit: qiskit.QuantumCircuit):
+    def __init__(self, built_circuit: qiskit.QuantumCircuit) -> None:
         self.built_circuit = built_circuit
 
 
 class CirqCircuit(Circuit):
-    def __init__(self, built_circuit: cirq.Circuit):
+    def __init__(self, built_circuit: cirq.Circuit) -> None:
         self.built_circuit = built_circuit
 
 
-class Platform:
+class Platform(abc.ABC):
     @staticmethod
+    @abc.abstractmethod
     def build(openqasm_str: str) -> Circuit:
         pass
 
     @staticmethod
-    def build(circuit: Circuit) -> List[float]:
+    @abc.abstractmethod
+    def execute(circuit: Circuit) -> List[float]:
         pass
 
 
@@ -37,7 +40,7 @@ class QiskitPlatform(Platform):
         return QiskitCircuit(qiskit.QuantumCircuit.from_qasm_str(openqasm_str))
 
     @staticmethod
-    def run(quantum_circuit: QiskitCircuit) -> List[float]:
+    def execute(quantum_circuit: QiskitCircuit) -> List[float]:
         circ = quantum_circuit.built_circuit
 
         simulator = Aer.get_backend("aer_simulator")
@@ -61,7 +64,7 @@ class CirqPlatform(Platform):
         return CirqCircuit(circuit_from_qasm(openqasm_str))
 
     @staticmethod
-    def run(quantum_circuit: CirqCircuit) -> List[float]:
+    def execute(quantum_circuit: CirqCircuit) -> List[float]:
         circ = quantum_circuit.built_circuit
 
         result = cirq.Simulator().run(circ, repetitions=CirqPlatform.shots)
