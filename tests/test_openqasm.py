@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from examples.openqasm import QiskitPlatform, CirqPlatform
+from examples.openqasm import *
 
 import unittest
 
