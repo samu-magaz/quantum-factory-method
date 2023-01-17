@@ -1,8 +1,8 @@
 Quantum Factory Method Documentation
 ====================================
 
-To build the documentation simply run:
+To build the documentation simply run:::
 
-``make html``
+  make html
 
-And the documentation will be available from index.html
+The documentation will be available from ``index.html`` in the build directory.
