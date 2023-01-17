@@ -1,3 +1,6 @@
+'''QRBS example module
+'''
+
 from __future__ import annotations
 import abc
 import re
@@ -18,56 +21,110 @@ from cirq import CCNOT
 
 
 class Circuit(abc.ABC):
+    '''Base class for Circuit classes
+    '''
     def __init__(self, tags: dict[str,int]) -> None:
         self.tags = tags
 
 
 class QiskitCircuit(Circuit):
+    '''Circuit class for Qiskit
+    '''
     def __init__(self, tags: dict[str,int], built_circuit: qiskit.QuantumCircuit) -> None:
         super().__init__(tags)
         self.built_circuit = built_circuit
 
 
 class CirqCircuit(Circuit):
+    '''Circuit class for Cirq
+    '''
     def __init__(self, tags: dict[str,int], built_circuit: cirq.Circuit) -> None:
         super().__init__(tags)
         self.built_circuit = built_circuit
 
 
 class Result:
+    '''Class to store the values after executing a circuit
+    '''
     def __init__(self, values: dict[str,float]) -> None:
         self.values = values
 
 
 class Platform(abc.ABC):
+    '''Base class for Platform classes
+    '''
     @staticmethod
     @abc.abstractmethod
     def build_fact(fact: Fact) -> Circuit:
+        '''Abstract method for building the corresponding quantum circuit of a fact; part of Visitor design pattern
+
+        :param fact: The Fact object whose quantum circuit will be built
+        :type fact: Fact
+        :return: The Circuit object with the quantum circuit
+        :rtype: Circuit
+        '''
         pass
     
     @staticmethod
     @abc.abstractmethod
     def build_not(notOperator: NotOperator) -> Circuit:
+        '''Abstract method for building the corresponding quantum circuit of a not operator; part of Visitor design pattern
+
+        :param notOperator: The NotOperator whose quantum circuit will be built
+        :type notOperator: NotOperator
+        :return: The Circuit object with the quantum circuit
+        :rtype: Circuit
+        '''
         pass
     
     @staticmethod
     @abc.abstractmethod
     def build_and(andOperator: AndOperator) -> Circuit:
+        '''Abstract method for building the corresponding quantum circuit of an and operator; part of Visitor design pattern
+
+        :param andOperator: The AndOperator whose quantum circuit will be built
+        :type andOperator: AndOperator
+        :return: The Circuit object with the quantum circuit
+        :rtype: Circuit
+        '''
         pass
     
     @staticmethod
     @abc.abstractmethod
     def build_or(orOperator: OrOperator) -> Circuit:
+        '''Abstract method for building the corresponding quantum circuit of an or operator; part of Visitor design pattern
+
+        :param orOperator: The OrOperator whose quantum circuit will be built
+        :type orOperator: OrOperator
+        :return: The Circuit object with the quantum circuit
+        :rtype: Circuit
+        '''
         pass
     
     @staticmethod
     @abc.abstractmethod
-    def execute(Circuit) -> Result:
+    def execute(circuit: Circuit) -> Result:
+        '''Abstract method for executing a previously built quantum circuit
+
+        :param Circuit: The Circuit object containing the quantum circuit that will be executed
+        :type Circuit: Circuit
+        :return: The Result object with the values of the execution
+        :rtype: Result
+        '''
         pass
     
     
 class QiskitPlatform(Platform):
-    def _build_m_operator(certainty):
+    '''Platform class for Qiskit
+    '''
+    def _build_m_operator(certainty: float) -> Operator:
+        '''Private method to build the corresponding quantum operator of the M gate
+
+        :param certainty: The certainty associated with the element
+        :type certainty: float
+        :return: The Operator that will be applied to the quantum circuit
+        :rtype: Operator
+        '''
         alpha = certainty * np.pi/2
         return Operator([
             [np.cos(alpha), np.sin(alpha)],
@@ -77,6 +134,13 @@ class QiskitPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_fact(fact: Fact) -> QiskitCircuit:
+        '''Builds the corresponding quantum circuit of a fact; part of Visitor design pattern
+
+        :param fact: The Fact object whose quantum circuit will be built
+        :type fact: Fact
+        :return: The QiskitCircuit object with the quantum circuit
+        :rtype: QiskitCircuit
+        '''
         tags = {fact.tag: 0}
 
         qreg = qiskit.QuantumRegister(1)
@@ -90,6 +154,13 @@ class QiskitPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_not(notOperator: NotOperator) -> QiskitCircuit:
+        '''Builds the corresponding quantum circuit of a not operator; part of Visitor design pattern
+
+        :param notOperator: The NotOperator object whose quantum circuit will be built
+        :type notOperator: NotOperator
+        :return: The QiskitCircuit object with the quantum circuit
+        :rtype: QiskitCircuit
+        '''
         child_circ = notOperator.child.accept(QiskitPlatform)
 
         height = child_circ.built_circuit.num_qubits + 2
@@ -112,6 +183,13 @@ class QiskitPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_and(andOperator: AndOperator) -> QiskitCircuit:
+        '''Builds the corresponding quantum circuit of an and operator; part of Visitor design pattern
+
+        :param andOperator: The AndOperator object whose quantum circuit will be built
+        :type andOperator: AndOperator
+        :return: The QiskitCircuit object with the quantum circuit
+        :rtype: QiskitCircuit
+        '''
         left_child_circ = andOperator.left_child.accept(QiskitPlatform)
         right_child_circ = andOperator.right_child.accept(QiskitPlatform)
 
@@ -137,6 +215,13 @@ class QiskitPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_or(orOperator: OrOperator) -> QiskitCircuit:
+        '''Builds the corresponding quantum circuit of an or operator; part of Visitor design pattern
+
+        :param orOperator: The OrOperator object whose quantum circuit will be built
+        :type orOperator: OrOperator
+        :return: The QiskitCircuit object with the quantum circuit
+        :rtype: QiskitCircuit
+        '''
         left_child_circ = orOperator.left_child.accept(QiskitPlatform)
         right_child_circ = orOperator.right_child.accept(QiskitPlatform)
 
@@ -164,6 +249,13 @@ class QiskitPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def execute(quantum_circuit: QiskitCircuit) -> Result:
+        '''Executes a previously built quantum circuit
+
+        :param quantum_circuit: The QiskitCircuit object containing the quantum circuit that will be executed
+        :type quantum_circuit: QiskitCircuit
+        :return: The Result object with the values of the execution
+        :rtype: Result
+        '''
         circ = quantum_circuit.built_circuit
         circ.measure_all()
 
@@ -185,8 +277,12 @@ class QiskitPlatform(Platform):
     
     
 class CirqPlatform(Platform):
+    '''Platform class for Cirq
+    '''
 
     class MGate(cirq.Gate):
+        '''Class for the M gate implementation in Cirq
+        '''
         def __init__(self, certainty):
             super()
             self.alpha = certainty * np.pi/2
@@ -206,6 +302,13 @@ class CirqPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_fact(fact: Fact) -> CirqCircuit:
+        '''Builds the corresponding quantum circuit of a fact; part of Visitor design pattern
+
+        :param fact: The Fact object whose quantum circuit will be built
+        :type fact: Fact
+        :return: The CirqCircuit object with the quantum circuit
+        :rtype: CirqCircuit
+        '''
         tags = {fact.tag: 0}
 
         tags[fact.tag] = 0
@@ -217,6 +320,13 @@ class CirqPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_not(notOperator: NotOperator) -> CirqCircuit:
+        '''Builds the corresponding quantum circuit of a not operator; part of Visitor design pattern
+
+        :param notOperator: The NotOperator object whose quantum circuit will be built
+        :type notOperator: NotOperator
+        :return: The CirqCircuit object with the quantum circuit
+        :rtype: CirqCircuit
+        '''
         child_circ = notOperator.child.accept(CirqPlatform)
 
         height = len(child_circ.built_circuit.all_qubits()) + 2
@@ -244,6 +354,13 @@ class CirqPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_and(andOperator: AndOperator) -> CirqCircuit:
+        '''Builds the corresponding quantum circuit of an and operator; part of Visitor design pattern
+
+        :param andOperator: The AndOperator object whose quantum circuit will be built
+        :type andOperator: AndOperator
+        :return: The CirqCircuit object with the quantum circuit
+        :rtype: CirqCircuit
+        '''
         left_child_circ = andOperator.left_child.accept(CirqPlatform)
         right_child_circ = andOperator.right_child.accept(CirqPlatform)
 
@@ -279,6 +396,13 @@ class CirqPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def build_or(orOperator: OrOperator) -> CirqCircuit:
+        '''Builds the corresponding quantum circuit of an or operator; part of Visitor design pattern
+
+        :param orOperator: The OrOperator object whose quantum circuit will be built
+        :type orOperator: OrOperator
+        :return: The CirqCircuit object with the quantum circuit
+        :rtype: CirqCircuit
+        '''
         left_child_circ = orOperator.left_child.accept(CirqPlatform)
         right_child_circ = orOperator.right_child.accept(CirqPlatform)
 
@@ -316,6 +440,13 @@ class CirqPlatform(Platform):
     @staticmethod
     @abc.abstractmethod
     def execute(quantum_circuit: CirqCircuit) -> Result:
+        '''Executes a previously built quantum circuit
+
+        :param quantum_circuit: The CirqCircuit object containing the quantum circuit that will be executed
+        :type quantum_circuit: CirqCircuit
+        :return: The Result object with the values of the execution
+        :rtype: Result
+        '''
         circ = quantum_circuit.built_circuit
         circ.append(cirq.measure(*circ.all_qubits()))
         result = cirq.Simulator().run(circ, repetitions=1024)
